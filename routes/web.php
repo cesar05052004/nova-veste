@@ -105,3 +105,5 @@ Route::patch('/admin/pedidos/{pedido}/reabrir', function (Pedido $pedido) {
     $pedido->update(['completado' => false]);
     return back()->with('success', 'Pedido reabierto');
 })->name('pedidos.reabrir');
+
+// Forzar redeploy en Render
