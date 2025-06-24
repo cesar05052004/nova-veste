@@ -1,0 +1,34 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar {
+    background: #000;
+    color: #fff;
+    padding: 1em;
+}
+
+.navbar .logo {
+    height: 40px;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1em;
+}
+
+.catalogo {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.producto {
+    border: 1px solid #ddd;
+    padding: 1em;
+    width: 200px;
+    text-align: center;
+}
