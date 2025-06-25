@@ -18,10 +18,10 @@
                     <div class="product-card">
                         <div class="product-image-container ratio ratio-1x1">
                             @if($producto->imagen)
-                                <img src="{{ asset('storage/' . $producto->imagen) }}" class="product-image img-cover" alt="{{ $producto->nombre }}">
-                            @else
-                                <img src="{{ asset('img/logo2.png') }}" class="product-image img-cover" alt="Producto">
-                            @endif
+                             <img src="{{ $producto->imagen }}" class="product-image img-cover" alt="{{ $producto->nombre }}">
+                              @else
+                               <img src="{{ asset('img/logo2.png') }}" class="product-image img-cover" alt="Producto">
+                                @endif
                             <div class="product-actions">
                                 <form action="{{ route('pedir.producto') }}" method="GET">
                                     <input type="hidden" name="producto" value="{{ $producto->nombre }}">
