@@ -39,7 +39,7 @@ class ProductoController extends Controller
             $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
                 'folder' => 'nova_veste'
             ]);
-            $rutaImagen = $uploadedResponse['secure_url'] ?? null;
+            $rutaImagen = $uploadedResponse->getSecurePath(); // ← corrección aquí
         }
 
         Producto::create([
@@ -98,7 +98,7 @@ class ProductoController extends Controller
             $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
                 'folder' => 'nova_veste'
             ]);
-            $producto->imagen = $uploadedResponse->getSecurePath();
+            $producto->imagen = $uploadedResponse->getSecurePath(); // ← también aquí
         }
 
         $producto->nombre = $request->nombre;
