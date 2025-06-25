@@ -36,18 +36,11 @@ class ProductoController extends Controller
 
         if ($request->hasFile('imagen')) {
             $uploadedFile = $request->file('imagen');
-            try {
-                $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
-                    'folder' => 'nova_veste'
-                ]);
-
-                if ($uploadedResponse && method_exists($uploadedResponse, 'getSecurePath')) {
-                    $rutaImagen = $uploadedResponse->getSecurePath();
-                }
-            } catch (\Exception $e) {
-                \Log::error('Error subiendo imagen a Cloudinary: ' . $e->getMessage());
-                return back()->with('error', 'Error al subir la imagen. Intenta nuevamente.');
-            }
+      
+            $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
+                'folder' => 'nova_veste'
+            ]);
+            $rutaImagen = $uploadedResponse['secure_url'] ?? null;
         }
 
         Producto::create([
@@ -57,7 +50,7 @@ class ProductoController extends Controller
             'imagen' => $rutaImagen,
         ]);
 
-        return redirect()->back()->with('success', 'Producto creado correctamente.');
+        return redirect()->route('tienda.inicio')->with('success', 'Producto creado correctamente.');
     }
 
     public function eliminar($id)
@@ -103,18 +96,10 @@ class ProductoController extends Controller
         if ($request->hasFile('imagen')) {
             // Subir nueva imagen a Cloudinary
             $uploadedFile = $request->file('imagen');
-            try {
-                $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
-                    'folder' => 'nova_veste'
-                ]);
-
-                if ($uploadedResponse && method_exists($uploadedResponse, 'getSecurePath')) {
-                    $producto->imagen = $uploadedResponse->getSecurePath();
-                }
-            } catch (\Exception $e) {
-                \Log::error('Error subiendo imagen a Cloudinary: ' . $e->getMessage());
-                return back()->with('error', 'Error al subir la imagen. Intenta nuevamente.');
-            }
+            $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
+                'folder' => 'nova_veste'
+            ]);
+            $producto->imagen = $uploadedResponse->getSecurePath(); // ← también aquí
         }
 
         $producto->nombre = $request->nombre;
