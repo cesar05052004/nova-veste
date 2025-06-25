@@ -36,10 +36,18 @@ class ProductoController extends Controller
 
         if ($request->hasFile('imagen')) {
             $uploadedFile = $request->file('imagen');
-            $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
-                'folder' => 'nova_veste'
-            ]);
-            $rutaImagen = $uploadedResponse->getSecurePath(); // ← corrección aquí
+            try {
+                $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
+                    'folder' => 'nova_veste'
+                ]);
+
+                if ($uploadedResponse && method_exists($uploadedResponse, 'getSecurePath')) {
+                    $rutaImagen = $uploadedResponse->getSecurePath();
+                }
+            } catch (\Exception $e) {
+                \Log::error('Error subiendo imagen a Cloudinary: ' . $e->getMessage());
+                return back()->with('error', 'Error al subir la imagen. Intenta nuevamente.');
+            }
         }
 
         Producto::create([
@@ -95,10 +103,18 @@ class ProductoController extends Controller
         if ($request->hasFile('imagen')) {
             // Subir nueva imagen a Cloudinary
             $uploadedFile = $request->file('imagen');
-            $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
-                'folder' => 'nova_veste'
-            ]);
-            $producto->imagen = $uploadedResponse->getSecurePath(); // ← también aquí
+            try {
+                $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
+                    'folder' => 'nova_veste'
+                ]);
+
+                if ($uploadedResponse && method_exists($uploadedResponse, 'getSecurePath')) {
+                    $producto->imagen = $uploadedResponse->getSecurePath();
+                }
+            } catch (\Exception $e) {
+                \Log::error('Error subiendo imagen a Cloudinary: ' . $e->getMessage());
+                return back()->with('error', 'Error al subir la imagen. Intenta nuevamente.');
+            }
         }
 
         $producto->nombre = $request->nombre;
