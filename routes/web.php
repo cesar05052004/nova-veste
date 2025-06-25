@@ -23,7 +23,7 @@ function notificarPorTelegram($mensaje)
     ];
 
     try {
-        Http::post($url, $data);
+        Http::timeout(3)->post($url, $data);
     } catch (\Exception $e) {
         \Log::error('Error al enviar mensaje de Telegram: ' . $e->getMessage());
     }
