@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Producto;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Exception;
 
 class ProductoController extends Controller
 {
@@ -34,14 +35,20 @@ class ProductoController extends Controller
 
         $rutaImagen = null;
 
-        if ($request->hasFile('imagen')) {
-            $uploadedFile = $request->file('imagen');
-      
-            $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
-                'folder' => 'nova_veste'
-            ]);
-            $rutaImagen = $uploadedResponse['secure_url'] ?? null;
-        }
+       try {
+    if ($request->hasFile('imagen')) {
+        $uploadedFile = $request->file('imagen');
+
+        $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
+            'folder' => 'nova_veste'
+        ]);
+
+        $rutaImagen = $uploadedResponse->getSecurePath();
+    }
+} catch (Exception $e) {
+    return back()->withErrors(['imagen' => 'Error al subir la imagen: ' . $e->getMessage()]);
+}
+
 
         Producto::create([
             'nombre' => $request->nombre,
