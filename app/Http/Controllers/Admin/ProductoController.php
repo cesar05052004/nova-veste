@@ -43,6 +43,8 @@ try {
             'folder' => 'nova_veste'
         ]);
 
+        dd($uploadedResponse);
+
         $rutaImagen = $uploadedResponse->getSecurePath(); // <- ESTE ES EL MÉTODO CORRECTO
     }
 } catch (\Exception $e) {
