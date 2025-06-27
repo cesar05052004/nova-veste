@@ -35,7 +35,7 @@ class ProductoController extends Controller
 
         $rutaImagen = null;
 
-       try {
+try {
     if ($request->hasFile('imagen')) {
         $uploadedFile = $request->file('imagen');
 
@@ -43,12 +43,11 @@ class ProductoController extends Controller
             'folder' => 'nova_veste'
         ]);
 
-        $rutaImagen = $uploadedResponse->getSecurePath();
+        $rutaImagen = $uploadedResponse->getSecurePath(); // <- ESTE ES EL MÉTODO CORRECTO
     }
-} catch (Exception $e) {
+} catch (\Exception $e) {
     return back()->withErrors(['imagen' => 'Error al subir la imagen: ' . $e->getMessage()]);
 }
-
 
         Producto::create([
             'nombre' => $request->nombre,
