@@ -9,23 +9,25 @@ use App\Models\Pedido;
 use App\Http\Controllers\Admin\TiendaController;
 use Illuminate\Support\Facades\Http;
 
-function notificarPorTelegram($mensaje)
-{
-    $token = '7621985084:AAHibdc-wul9fSDd71eQ8UQj0kgZiqBKQws'; // tu token de bot
-    $chat_id = '5257846261'; // tu ID de chat (el que apareció cuando enviaste "Hola")
+if (!function_exists('notificarPorTelegram')) {
+    function notificarPorTelegram($mensaje)
+    {
+        $token = '7621985084:AAHibdc-wul9fSDd71eQ8UQj0kgZiqBKQws'; // tu token de bot
+        $chat_id = '5257846261'; // tu ID de chat
 
-    $url = "https://api.telegram.org/bot$token/sendMessage";
+        $url = "https://api.telegram.org/bot$token/sendMessage";
 
-    $data = [
-        'chat_id' => $chat_id,
-        'text'    => $mensaje,
-        'parse_mode' => 'HTML',
-    ];
+        $data = [
+            'chat_id' => $chat_id,
+            'text'    => $mensaje,
+            'parse_mode' => 'HTML',
+        ];
 
-    try {
-        Http::timeout(3)->post($url, $data);
-    } catch (\Exception $e) {
-        \Log::error('Error al enviar mensaje de Telegram: ' . $e->getMessage());
+        try {
+            Http::timeout(3)->post($url, $data);
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar mensaje de Telegram: ' . $e->getMessage());
+        }
     }
 }
 
@@ -58,7 +60,7 @@ Route::middleware('auth')->group(function () {
             'producto' => 'required|string|max:255',
             'cantidad' => 'required|integer|min:1',
             'direccion' => 'required|string|max:255',
-            'telefono'  => 'required|digits:10', // validamos también el teléfono
+            'telefono'  => 'required|digits:10',
         ]);
 
         $pedido = Pedido::create([
@@ -74,7 +76,7 @@ Route::middleware('auth')->group(function () {
         $mensaje .= "👤 Usuario: " . auth()->user()->name . "\n";
         $mensaje .= "📦 Producto: " . $request->producto . "\n";
         $mensaje .= "🔢 Cantidad: " . $request->cantidad . "\n";
-        $mensaje .= "📍 Dirección: " . $request->direccion;
+        $mensaje .= "📍 Dirección: " . $request->direccion . "\n";
         $mensaje .= "📞 Teléfono: " . $request->telefono;
 
         notificarPorTelegram($mensaje);
@@ -90,12 +92,12 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/crear-producto', [ProductoController::class, 'crear'])->name('admin.crear-producto');
     Route::post('/guardar-producto', [ProductoController::class, 'guardar'])->name('admin.guardar-producto');
+    Route::delete('/eliminar-producto/{id}', [ProductoController::class, 'eliminar'])->name('admin.eliminar-producto');
+    Route::get('/productos/{id}/editar', [ProductoController::class, 'editar'])->name('admin.editar-producto');
+    Route::put('/productos/{id}', [ProductoController::class, 'actualizar'])->name('admin.actualizar-producto');
 });
 
-Route::delete('/eliminar-producto/{id}', [ProductoController::class, 'eliminar'])->name('admin.eliminar-producto');
-Route::get('/admin/productos/{id}/editar', [App\Http\Controllers\Admin\ProductoController::class, 'editar'])->name('admin.editar-producto');
-Route::put('/admin/productos/{id}', [App\Http\Controllers\Admin\ProductoController::class, 'actualizar'])->name('admin.actualizar-producto');
-
+// Completar o reabrir pedidos
 Route::patch('/admin/pedidos/{pedido}/completar', function (Pedido $pedido) {
     $pedido->update(['completado' => true]);
     return back()->with('success', 'Pedido marcado como completado');
@@ -105,5 +107,3 @@ Route::patch('/admin/pedidos/{pedido}/reabrir', function (Pedido $pedido) {
     $pedido->update(['completado' => false]);
     return back()->with('success', 'Pedido reabierto');
 })->name('pedidos.reabrir');
-
-
