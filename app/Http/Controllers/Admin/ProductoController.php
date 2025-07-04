@@ -20,46 +20,47 @@ class ProductoController extends Controller
     }
 
     public function guardar(Request $request)
-    {
-        if (!Auth::check() || !Auth::user()->is_admin) {
-            abort(403, 'Acceso denegado');
-        }
-
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'precio' => 'required|numeric',
-            'descripcion' => 'nullable|string',
-            'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
-
-        $rutaImagen = null;
-        $publicId = null;
-
-        try {
-            if ($request->hasFile('imagen')) {
-                $uploadedFile = $request->file('imagen');
-
-                $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
-                    'folder' => 'nova_veste'
-                ]);
-
-                $rutaImagen = $uploadedResponse->getSecurePath();
-                $publicId = $uploadedResponse->getPublicId();
-            }
-        } catch (\Exception $e) {
-            return back()->withErrors(['imagen' => 'Error al subir la imagen: ' . $e->getMessage()]);
-        }
-
-        Producto::create([
-            'nombre' => $request->nombre,
-            'precio' => $request->precio,
-            'descripcion' => $request->descripcion,
-            'imagen' => $rutaImagen,
-            'public_id' => $publicId, // <-- necesitas una columna en la tabla
-        ]);
-
-        return redirect()->route('tienda.inicio')->with('success', 'Producto creado correctamente.');
+{
+    if (!Auth::check() || !Auth::user()->is_admin) {
+        abort(403, 'Acceso denegado');
     }
+
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'precio' => 'required|numeric',
+        'descripcion' => 'nullable|string',
+        'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+    ]);
+
+    $rutaImagen = null;
+    $publicId = null;
+
+    try {
+        if ($request->hasFile('imagen')) {
+            $uploadedFile = $request->file('imagen');
+
+            $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
+                'folder' => 'nova_veste'
+            ])->getResponse();
+
+            $rutaImagen = $uploadedResponse['secure_url'];
+            $publicId = $uploadedResponse['public_id'];
+        }
+    } catch (\Exception $e) {
+        return back()->withErrors(['imagen' => 'Error al subir la imagen: ' . $e->getMessage()]);
+    }
+
+    Producto::create([
+        'nombre' => $request->nombre,
+        'precio' => $request->precio,
+        'descripcion' => $request->descripcion,
+        'imagen' => $rutaImagen,
+        'public_id' => $publicId,
+    ]);
+
+    return redirect()->route('tienda.inicio')->with('success', 'Producto creado correctamente.');
+}
+
 
     public function eliminar($id)
     {
