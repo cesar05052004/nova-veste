@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Producto;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
-use Exception;
 
 class ProductoController extends Controller
 {
@@ -34,28 +33,29 @@ class ProductoController extends Controller
         ]);
 
         $rutaImagen = null;
+        $publicId = null;
 
-try {
-    if ($request->hasFile('imagen')) {
-        $uploadedFile = $request->file('imagen');
+        try {
+            if ($request->hasFile('imagen')) {
+                $uploadedFile = $request->file('imagen');
 
-        $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
-            'folder' => 'nova_veste'
-        ]);
+                $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
+                    'folder' => 'nova_veste'
+                ]);
 
-        dd($uploadedResponse);
-
-        $rutaImagen = $uploadedResponse->getSecurePath(); // <- ESTE ES EL MÉTODO CORRECTO
-    }
-} catch (\Exception $e) {
-    return back()->withErrors(['imagen' => 'Error al subir la imagen: ' . $e->getMessage()]);
-}
+                $rutaImagen = $uploadedResponse->getSecurePath();
+                $publicId = $uploadedResponse->getPublicId();
+            }
+        } catch (\Exception $e) {
+            return back()->withErrors(['imagen' => 'Error al subir la imagen: ' . $e->getMessage()]);
+        }
 
         Producto::create([
             'nombre' => $request->nombre,
             'precio' => $request->precio,
             'descripcion' => $request->descripcion,
             'imagen' => $rutaImagen,
+            'public_id' => $publicId, // <-- necesitas una columna en la tabla
         ]);
 
         return redirect()->route('tienda.inicio')->with('success', 'Producto creado correctamente.');
@@ -69,7 +69,13 @@ try {
 
         $producto = Producto::findOrFail($id);
 
-        // No eliminamos imágenes en Cloudinary para evitar errores si hay problemas con el nombre público.
+        try {
+            if ($producto->public_id) {
+                Cloudinary::destroy($producto->public_id);
+            }
+        } catch (\Exception $e) {
+            // Puedes registrar el error si quieres
+        }
 
         $producto->delete();
 
@@ -102,12 +108,23 @@ try {
         ]);
 
         if ($request->hasFile('imagen')) {
+            // Elimina la imagen anterior en Cloudinary
+            if ($producto->public_id) {
+                try {
+                    Cloudinary::destroy($producto->public_id);
+                } catch (\Exception $e) {
+                    // opcional: registrar error
+                }
+            }
+
             // Subir nueva imagen a Cloudinary
             $uploadedFile = $request->file('imagen');
             $uploadedResponse = Cloudinary::upload($uploadedFile->getRealPath(), [
                 'folder' => 'nova_veste'
             ]);
-            $producto->imagen = $uploadedResponse->getSecurePath(); // ← también aquí
+
+            $producto->imagen = $uploadedResponse->getSecurePath();
+            $producto->public_id = $uploadedResponse->getPublicId();
         }
 
         $producto->nombre = $request->nombre;
